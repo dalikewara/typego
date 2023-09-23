@@ -12,6 +12,7 @@ import (
 
 func TestNewError(t *testing.T) {
 	assert.NotNil(t, typego.NewError("", ""))
+	assert.NotNil(t, typego.NewError("01", "general error"))
 }
 
 func TestErrorModel_ChangeCode(t *testing.T) {
