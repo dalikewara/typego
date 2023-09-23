@@ -87,8 +87,8 @@ func TestErrorModel_Copy(t *testing.T) {
 
 		wg.Wait()
 
-		assert.Equal(t, "03", errMap["1"]) // false expected, should has 02
-		assert.Equal(t, "03", errMap["2"]) // true expected, has 03
+		assert.Equal(t, "03", errMap["1"]) // false expected, should return 02
+		assert.Equal(t, "03", errMap["2"]) // true expected, return 03
 	})
 
 	t.Run("editing_global_variable_by_copying_the_object", func(t *testing.T) {
