@@ -34,7 +34,7 @@ func (e *errorModel) ChangeMessage(message string) Error {
 	return e
 }
 
-// AddInfo adds error info
+// AddInfo adds error information
 func (e *errorModel) AddInfo(info ...interface{}) Error {
 	for _, i := range info {
 		if asserted, ok := i.(error); ok {
