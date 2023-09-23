@@ -1,11 +1,14 @@
 package typego
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Error interface {
-	SetCode(code string) Error
-	SetMessage(message string) Error
-	SetInfo(info ...interface{}) Error
+	ChangeCode(code string) Error
+	ChangeMessage(message string) Error
+	AddInfo(info ...interface{}) Error
 	GetCode() string
 	GetMessage() string
 	GetInfo() []string
@@ -19,20 +22,20 @@ type errorModel struct {
 	Info    []string `json:"info"`
 }
 
-// SetCode sets error code
-func (e *errorModel) SetCode(code string) Error {
+// ChangeCode changes error code
+func (e *errorModel) ChangeCode(code string) Error {
 	e.Code = code
 	return e
 }
 
-// SetMessage sets error message
-func (e *errorModel) SetMessage(message string) Error {
+// ChangeMessage changes error message
+func (e *errorModel) ChangeMessage(message string) Error {
 	e.Message = message
 	return e
 }
 
-// SetInfo sets error info
-func (e *errorModel) SetInfo(info ...interface{}) Error {
+// AddInfo adds error info
+func (e *errorModel) AddInfo(info ...interface{}) Error {
 	for _, i := range info {
 		if asserted, ok := i.(error); ok {
 			e.Info = append(e.Info, asserted.Error())
@@ -68,10 +71,13 @@ func (e *errorModel) Copy() Error {
 
 // Error returns error string
 func (e *errorModel) Error() string {
-	return fmt.Sprintf("error: code=%s, message=%s", e.Code, e.Message)
+	return fmt.Sprintf("error: code=%s, message=%s, info=[%s]", e.Code, e.Message, strings.Join(e.Info, ", "))
 }
 
 // NewError generates new typego.Error
-func NewError() Error {
-	return &errorModel{}
+func NewError(code string, message string) Error {
+	return &errorModel{
+		Code:    code,
+		Message: message,
+	}
 }
