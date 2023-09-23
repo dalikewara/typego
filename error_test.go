@@ -1,6 +1,7 @@
 package typego_test
 
 import (
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -21,12 +22,30 @@ func TestErrorModel_SetMessage(t *testing.T) {
 	assert.NotNil(t, typego.NewError().SetMessage("general error"))
 }
 
+func TestErrorModel_SetInfo(t *testing.T) {
+	assert.NotNil(t, typego.NewError().SetInfo(errors.New("raw error")))
+}
+
 func TestErrorModel_GetCode(t *testing.T) {
 	assert.Equal(t, "01", typego.NewError().SetCode("01").GetCode())
 }
 
 func TestErrorModel_GetMessage(t *testing.T) {
 	assert.Equal(t, "general error", typego.NewError().SetMessage("general error").GetMessage())
+}
+
+func TestErrorMessage_GetInfo(t *testing.T) {
+	t.Run("error", func(t *testing.T) {
+		assert.Equal(t, []string{"raw error", "raw error 2", "raw error 3"}, typego.NewError().SetInfo(errors.New("raw error"), errors.New("raw error 2")).SetInfo(errors.New("raw error 3")).GetInfo())
+	})
+
+	t.Run("string", func(t *testing.T) {
+		assert.Equal(t, []string{"raw error", "raw error 2", "raw error 3"}, typego.NewError().SetInfo("raw error", "raw error 2").SetInfo("raw error 3").GetInfo())
+	})
+
+	t.Run("any", func(t *testing.T) {
+		assert.Equal(t, []string{"1"}, typego.NewError().SetInfo(1).GetInfo())
+	})
 }
 
 func TestErrorModel_Copy(t *testing.T) {
