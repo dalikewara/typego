@@ -117,8 +117,7 @@ func NewError(code string, message string) Error {
 // NewErrorFromError generates new typego.Error from an error. The error.Error() must has the same string format as typego.Error.Error(), otherwise, typego.Error will return incorrect value. The expected string format is: `error: code=%s, message=%s, httpStatus=%v, rpcStatus=%v, info=%s`
 func NewErrorFromError(err error) (Error, error) {
 	var value string
-	var flagCode, flagMessage, flagHttpStatus,
-		flagRPCStatus int
+	var flagCode, flagMessage, flagHttpStatus, flagRPCStatus int
 
 	e := &errorModel{}
 	errString := err.Error()
