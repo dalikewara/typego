@@ -1,10 +1,8 @@
 package typego
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
 )
 
 type Error interface {
@@ -26,8 +24,8 @@ type errorModel struct {
 	Code       string   `json:"code"`
 	Message    string   `json:"message"`
 	Info       []string `json:"info"`
-	httpStatus int
-	rpcStatus  int
+	HttpStatus int      `json:"http_status"`
+	RPCStatus  int      `json:"rpc_status"`
 }
 
 // ChangeCode changes error code
@@ -58,13 +56,13 @@ func (e *errorModel) AddInfo(info ...interface{}) Error {
 
 // SetHttpStatus sets error http status
 func (e *errorModel) SetHttpStatus(httpStatus int) Error {
-	e.httpStatus = httpStatus
+	e.HttpStatus = httpStatus
 	return e
 }
 
 // SetRPCStatus sets error rpc status
 func (e *errorModel) SetRPCStatus(rpcStatus int) Error {
-	e.rpcStatus = rpcStatus
+	e.RPCStatus = rpcStatus
 	return e
 }
 
@@ -85,12 +83,12 @@ func (e *errorModel) GetInfo() []string {
 
 // GetHttpStatus gets error http status
 func (e *errorModel) GetHttpStatus() int {
-	return e.httpStatus
+	return e.HttpStatus
 }
 
 // GetRPCStatus gets error rpc status
 func (e *errorModel) GetRPCStatus() int {
-	return e.rpcStatus
+	return e.RPCStatus
 }
 
 // Copy copies the error object and returns the new one
@@ -101,7 +99,8 @@ func (e *errorModel) Copy() Error {
 
 // Error returns error string
 func (e *errorModel) Error() string {
-	return fmt.Sprintf("error: code=%s, message=%s, httpStatus=%v, rpcStatus=%v, info=%s", e.Code, e.Message, e.httpStatus, e.rpcStatus, strings.Join(e.Info, ", info="))
+	b, _ := json.Marshal(e)
+	return "error: " + string(b)
 }
 
 // NewError generates new typego.Error
@@ -109,80 +108,28 @@ func NewError(code string, message string) Error {
 	return &errorModel{
 		Code:       code,
 		Message:    message,
-		httpStatus: 500,
-		rpcStatus:  13,
+		HttpStatus: 500,
+		RPCStatus:  13,
 	}
 }
 
-// NewErrorFromError generates new typego.Error from an error. The error.Error() must has the same string format as typego.Error.Error(), otherwise, typego.Error will return incorrect value. The expected string format is: `error: code=%s, message=%s, httpStatus=%v, rpcStatus=%v, info=%s`
-func NewErrorFromError(err error) (Error, error) {
-	var value string
-	var flagCode, flagMessage, flagHttpStatus, flagRPCStatus int
+// NewErrorFromError generates new typego.Error from an error. The error.Error() must has the same string format as typego.Error.Error(), otherwise, typego.Error will return incorrect value
+func NewErrorFromError(err error) Error {
+	var e errorModel
 
-	e := &errorModel{}
-	errString := err.Error()
-	length := len(errString)
+	errStr := err.Error()
 
-	for i := 0; i <= length-1; i++ {
-		if (i+11) <= (length-1) && errString[i:i+12] == "error: code=" {
-			if flagCode != 0 {
-				return nil, errors.New("the parameters value cannot contain this string: `error: code=`")
-			}
-			value = ""
-			i += 11
-			flagCode++
-		} else if (i+9) <= (length-1) && errString[i:i+10] == ", message=" {
-			if flagMessage != 0 {
-				return nil, errors.New("the parameters value cannot contain this string: `, message=`")
-			}
-			e.ChangeCode(value)
-			value = ""
-			i += 9
-			flagMessage++
-		} else if (i+12) <= (length-1) && errString[i:i+13] == ", httpStatus=" {
-			if flagHttpStatus != 0 {
-				return nil, errors.New("the parameters value cannot contain this string: `, httpStatus=`")
-			}
-			e.ChangeMessage(value)
-			value = ""
-			i += 12
-			flagHttpStatus++
-
-		} else if (i+11) <= (length-1) && errString[i:i+12] == ", rpcStatus=" {
-			if flagRPCStatus != 0 {
-				return nil, errors.New("the parameters value cannot contain this string: `, rpcStatus=`")
-			}
-			n, _ := strconv.Atoi(value)
-			if n == 0 {
-				e.SetHttpStatus(500)
-			} else {
-				e.SetHttpStatus((int(n)))
-			}
-			value = ""
-			i += 11
-			flagRPCStatus++
-		} else if (i+6) <= (length-1) && errString[i:i+7] == ", info=" {
-			if e.GetRPCStatus() == 0 {
-				n, _ := strconv.Atoi(value)
-				if n == 0 {
-					e.SetRPCStatus(13)
-				} else {
-					e.SetRPCStatus(int(n))
-				}
-			} else {
-				e.AddInfo(value)
-			}
-			value = ""
-			i += 6
-
-		} else {
-			value += string(errString[i])
-			if i == length-1 {
-				e.AddInfo(value)
-				value = ""
-			}
-		}
+	if len(errStr) > 7 {
+		json.Unmarshal([]byte(errStr[7:]), &e)
 	}
 
-	return e, nil
+	if e.HttpStatus == 0 {
+		e.HttpStatus = 500
+	}
+
+	if e.RPCStatus == 0 {
+		e.RPCStatus = 13
+	}
+
+	return &e
 }

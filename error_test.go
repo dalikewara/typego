@@ -148,47 +148,27 @@ func TestErrorModel_Copy(t *testing.T) {
 }
 
 func TestErrorModel_Error(t *testing.T) {
-	assert.Equal(t, "error: code=01, message=general error, httpStatus=500, rpcStatus=13, info=raw error, info=raw error 2", typego.NewError("01", "general error").SetHttpStatus(500).SetRPCStatus(13).AddInfo(errors.New("raw error")).AddInfo("raw error 2").Error())
+	assert.Equal(t, "error: {\"code\":\"01\",\"message\":\"general error\",\"info\":[\"raw error\",\"raw error 2\"],\"http_status\":500,\"rpc_status\":13}", typego.NewError("01", "general error").SetHttpStatus(500).SetRPCStatus(13).AddInfo(errors.New("raw error")).AddInfo("raw error 2").Error())
 }
 
 func TestNewErrorFromError(t *testing.T) {
 	t.Run("valid_format", func(t *testing.T) {
-		err := errors.New("error: code=500, message=general error, httpStatus=500, rpcStatus=13, info=raw error info, info=raw error info 2")
-		typegoErr, typegoErrErr := typego.NewErrorFromError(err)
-		assert.Nil(t, typegoErrErr)
-		assert.NotNil(t, typegoErr)
-		assert.Equal(t, err.Error(), typegoErr.Error())
-
-		err = errors.New("error: code=, message=, httpStatus=, rpcStatus=, info=")
-		typegoErr, typegoErrErr = typego.NewErrorFromError(err)
-		assert.Nil(t, typegoErrErr)
-		assert.NotNil(t, typegoErr)
-		assert.Equal(t, "error: code=, message=, httpStatus=500, rpcStatus=13, info=", typegoErr.Error())
+		err := typego.NewErrorFromError(errors.New("error:{\"code\":\"01\",\"message\":\"general error\",\"http_status\":500,\"info\":[\"raw info\",\"raw info 2\"],\"rpc_status\":13}"))
+		assert.Equal(t, "01", err.GetCode())
+		assert.Equal(t, "general error", err.GetMessage())
+		assert.Equal(t, 500, err.GetHttpStatus())
+		assert.Equal(t, 13, err.GetRPCStatus())
+		assert.Equal(t, 2, len(err.GetInfo()))
+		assert.Equal(t, "raw info", err.GetInfo()[0])
+		assert.Equal(t, "raw info 2", err.GetInfo()[1])
 	})
 
-	t.Run("invalid_format_error", func(t *testing.T) {
-		err := errors.New("error: code=50error: code=0, message=general error, httpStatus=500, rpcStatus=13, info=raw error info")
-		typegoErr, typegoErrErr := typego.NewErrorFromError(err)
-		assert.NotNil(t, typegoErrErr)
-		assert.Nil(t, typegoErr)
-		assert.Equal(t, "the parameters value cannot contain this string: `error: code=`", typegoErrErr.Error())
-
-		err = errors.New("error: code=500, message=general error, httpStatus=5, message=00, rpcStatus=13, info=raw error info")
-		typegoErr, typegoErrErr = typego.NewErrorFromError(err)
-		assert.NotNil(t, typegoErrErr)
-		assert.Nil(t, typegoErr)
-		assert.Equal(t, "the parameters value cannot contain this string: `, message=`", typegoErrErr.Error())
-
-		err = errors.New("error: code=01, message=general error, httpStatus=500, rpcStatus=13, info=raw er, httpStatus=ror info")
-		typegoErr, typegoErrErr = typego.NewErrorFromError(err)
-		assert.NotNil(t, typegoErrErr)
-		assert.Nil(t, typegoErr)
-		assert.Equal(t, "the parameters value cannot contain this string: `, httpStatus=`", typegoErrErr.Error())
-
-		err = errors.New("error:, rpcStatus= code=01, message=general error, httpStatus=500, rpcStatus=13, info=raw error info")
-		typegoErr, typegoErrErr = typego.NewErrorFromError(err)
-		assert.NotNil(t, typegoErrErr)
-		assert.Nil(t, typegoErr)
-		assert.Equal(t, "the parameters value cannot contain this string: `, rpcStatus=`", typegoErrErr.Error())
+	t.Run("invalid_format", func(t *testing.T) {
+		err := typego.NewErrorFromError(errors.New("error: code=01"))
+		assert.Equal(t, "", err.GetCode())
+		assert.Equal(t, "", err.GetMessage())
+		assert.Equal(t, 500, err.GetHttpStatus())
+		assert.Equal(t, 13, err.GetRPCStatus())
+		assert.Equal(t, 0, len(err.GetInfo()))
 	})
 }
