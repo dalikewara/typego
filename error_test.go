@@ -153,7 +153,7 @@ func TestErrorModel_Error(t *testing.T) {
 
 func TestNewErrorFromError(t *testing.T) {
 	t.Run("valid_format", func(t *testing.T) {
-		err := typego.NewErrorFromError(errors.New("error:{\"code\":\"01\",\"message\":\"general error\",\"http_status\":500,\"info\":[\"raw info\",\"raw info 2\"],\"rpc_status\":13}"))
+		err := typego.NewErrorFromError(errors.New("error: {\"code\":\"01\",\"message\":\"general error\",\"http_status\":500,\"info\":[\"raw info\",\"raw info 2\"],\"rpc_status\":13}"))
 		assert.Equal(t, "01", err.GetCode())
 		assert.Equal(t, "general error", err.GetMessage())
 		assert.Equal(t, 500, err.GetHttpStatus())
