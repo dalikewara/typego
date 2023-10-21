@@ -2,12 +2,11 @@ package typego_test
 
 import (
 	"errors"
+	"github.com/dalikewara/typego"
+	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/dalikewara/typego"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewError(t *testing.T) {
@@ -60,91 +59,13 @@ func TestErrorMessage_AddInfo(t *testing.T) {
 }
 
 func TestErrorModel_GetHttpStatus(t *testing.T) {
-	assert.Equal(t, 500, typego.NewError("", "").GetHttpStatus())
+	assert.Equal(t, 0, typego.NewError("", "").GetHttpStatus())
 	assert.Equal(t, 404, typego.NewError("", "").SetHttpStatus(404).GetHttpStatus())
 }
 
 func TestErrorModel_GetRPCStatus(t *testing.T) {
-	assert.Equal(t, 13, typego.NewError("", "").GetRPCStatus())
+	assert.Equal(t, 0, typego.NewError("", "").GetRPCStatus())
 	assert.Equal(t, 10, typego.NewError("", "").SetRPCStatus(10).GetRPCStatus())
-}
-
-func TestErrorModel_Copy(t *testing.T) {
-	t.Run("editing_global_variable_without_copying_the_object", func(t *testing.T) {
-		// in this skenario, we assume that editing global variable without copying the object could cause such condition like race condition
-
-		errMap := make(map[string]string)
-		err := typego.NewError("01", "")
-
-		var wg sync.WaitGroup
-		var lock = sync.RWMutex{}
-
-		wg.Add(1)
-		go func(w *sync.WaitGroup) {
-			defer w.Done()
-
-			e := err.ChangeCode("02")
-			time.Sleep(2 * time.Second)
-
-			lock.Lock()
-			errMap["1"] = e.GetCode()
-			lock.Unlock()
-		}(&wg)
-
-		wg.Add(1)
-		go func(w *sync.WaitGroup) {
-			defer w.Done()
-
-			time.Sleep(1 * time.Second)
-			e := err.ChangeCode("03")
-
-			lock.Lock()
-			errMap["2"] = e.GetCode()
-			lock.Unlock()
-		}(&wg)
-
-		wg.Wait()
-
-		assert.Equal(t, "03", errMap["1"]) // false expected, should return 02
-		assert.Equal(t, "03", errMap["2"]) // true expected, return 03
-	})
-
-	t.Run("editing_global_variable_by_copying_the_object", func(t *testing.T) {
-		errMap := make(map[string]string)
-		err := typego.NewError("01", "")
-
-		var wg sync.WaitGroup
-		var lock = sync.RWMutex{}
-
-		wg.Add(1)
-		go func(w *sync.WaitGroup) {
-			defer w.Done()
-
-			e := err.Copy().ChangeCode("02")
-			time.Sleep(2 * time.Second)
-
-			lock.Lock()
-			errMap["1"] = e.GetCode()
-			lock.Unlock()
-		}(&wg)
-
-		wg.Add(1)
-		go func(w *sync.WaitGroup) {
-			defer w.Done()
-
-			time.Sleep(1 * time.Second)
-			e := err.Copy().ChangeCode("03")
-
-			lock.Lock()
-			errMap["2"] = e.GetCode()
-			lock.Unlock()
-		}(&wg)
-
-		wg.Wait()
-
-		assert.Equal(t, "02", errMap["1"])
-		assert.Equal(t, "03", errMap["2"])
-	})
 }
 
 func TestErrorModel_Error(t *testing.T) {
@@ -167,8 +88,45 @@ func TestNewErrorFromError(t *testing.T) {
 		err := typego.NewErrorFromError(errors.New("error: code=01"))
 		assert.Equal(t, "", err.GetCode())
 		assert.Equal(t, "", err.GetMessage())
-		assert.Equal(t, 500, err.GetHttpStatus())
-		assert.Equal(t, 13, err.GetRPCStatus())
+		assert.Equal(t, 0, err.GetHttpStatus())
+		assert.Equal(t, 0, err.GetRPCStatus())
 		assert.Equal(t, 0, len(err.GetInfo()))
 	})
+}
+
+func TestErrorModel_AsGlobalVariable(t *testing.T) {
+	errMap := make(map[string]string)
+	err := typego.NewError("01", "")
+
+	var wg sync.WaitGroup
+	var lock = sync.RWMutex{}
+
+	wg.Add(1)
+	go func(w *sync.WaitGroup) {
+		defer w.Done()
+
+		e := err.ChangeCode("02")
+		time.Sleep(2 * time.Second)
+
+		lock.Lock()
+		errMap["1"] = e.GetCode()
+		lock.Unlock()
+	}(&wg)
+
+	wg.Add(1)
+	go func(w *sync.WaitGroup) {
+		defer w.Done()
+
+		time.Sleep(1 * time.Second)
+		e := err.ChangeCode("03")
+
+		lock.Lock()
+		errMap["2"] = e.GetCode()
+		lock.Unlock()
+	}(&wg)
+
+	wg.Wait()
+
+	assert.Equal(t, "02", errMap["1"])
+	assert.Equal(t, "03", errMap["2"])
 }

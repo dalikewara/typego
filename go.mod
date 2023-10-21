@@ -1,6 +1,6 @@
 module github.com/dalikewara/typego
 
-go 1.21.1
+go 1.19
 
 require github.com/stretchr/testify v1.8.4
 
