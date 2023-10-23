@@ -3,6 +3,7 @@ package typego
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type Error interface {
@@ -42,10 +43,10 @@ func (e errorModel) ChangeMessage(message string) Error {
 // AddInfo adds error information
 func (e errorModel) AddInfo(info ...interface{}) Error {
 	for _, i := range info {
-		if asserted, ok := i.(error); ok {
-			e.Info = append(e.Info, asserted.Error())
-		} else if asserted, ok := i.(string); ok {
-			e.Info = append(e.Info, asserted)
+		if assertedError, ok := i.(error); ok {
+			e.Info = append(e.Info, assertedError.Error())
+		} else if assertedString, ok := i.(string); ok {
+			e.Info = append(e.Info, assertedString)
 		} else {
 			e.Info = append(e.Info, fmt.Sprintf("%+v", i))
 		}
@@ -97,7 +98,7 @@ func (e errorModel) Error() string {
 		return "invalid: " + err.Error()
 	}
 
-	return "error: " + string(b)
+	return "error: " + strings.ReplaceAll(string(b), "\\\"", "\"")
 }
 
 // NewError generates new typego.Error
