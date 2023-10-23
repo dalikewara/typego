@@ -69,7 +69,7 @@ func TestErrorModel_GetRPCStatus(t *testing.T) {
 }
 
 func TestErrorModel_Error(t *testing.T) {
-	assert.Equal(t, "error: {\"code\":\"01\",\"message\":\"general error\",\"info\":[\"raw error\",\"raw error 2\"],\"http_status\":500,\"rpc_status\":13}", typego.NewError("01", "general error").SetHttpStatus(500).SetRPCStatus(13).AddInfo(errors.New("raw error")).AddInfo("raw error 2").Error())
+	assert.Equal(t, "error: {\"code\":\"01\",\"message\":\"general error\",\"info\":[\"raw error\",\"raw error 2\"],\"http_status\":500,\"rpc_status\":13}", typego.NewError("01", "general error").SetHttpStatus(500).SetRPCStatus(13).AddInfo(errors.New("raw error").Error()).AddInfo("raw error 2").Error())
 }
 
 func TestNewErrorFromError(t *testing.T) {
@@ -92,6 +92,18 @@ func TestNewErrorFromError(t *testing.T) {
 		assert.Equal(t, 0, err.GetRPCStatus())
 		assert.Equal(t, 0, len(err.GetInfo()))
 	})
+
+	//t.Run("other_scenarios", func(t *testing.T) {
+	//	err1 := typego.NewError("01", "general error, message=1").SetHttpStatus(500).AddInfo(errors.New("raw error 1")).SetRPCStatus(13)
+	//	err2 := typego.NewError("02", "general error 2").SetHttpStatus(500).SetRPCStatus(13).AddInfo("raw error 2", err1)
+	//	err3 := typego.NewError("03", "general error 3").SetHttpStatus(500).AddInfo("raw error 3", err2)
+	//	err := typego.NewErrorFromError(err3)
+	//
+	//	fmt.Println(err1)
+	//	fmt.Println(err2)
+	//	fmt.Println(err3)
+	//	fmt.Println(err)
+	//})
 }
 
 func TestErrorModel_AsGlobalVariable(t *testing.T) {

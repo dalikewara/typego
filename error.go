@@ -3,7 +3,6 @@ package typego
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 )
 
 type Error interface {
@@ -43,13 +42,16 @@ func (e errorModel) ChangeMessage(message string) Error {
 // AddInfo adds error information
 func (e errorModel) AddInfo(info ...interface{}) Error {
 	for _, i := range info {
-		if assertedError, ok := i.(error); ok {
-			e.Info = append(e.Info, assertedError.Error())
-		} else if assertedString, ok := i.(string); ok {
-			e.Info = append(e.Info, assertedString)
-		} else {
-			e.Info = append(e.Info, fmt.Sprintf("%+v", i))
+		if assertedString, ok := i.(string); ok {
+			e.Info = append(e.Info, jsonStringCleaner(assertedString))
+			continue
 		}
+		if assertedError, ok := i.(error); ok {
+			e.Info = append(e.Info, jsonStringCleaner(assertedError.Error()))
+			continue
+		}
+
+		e.Info = append(e.Info, fmt.Sprintf("%+v", i))
 	}
 	return e
 }
@@ -98,7 +100,7 @@ func (e errorModel) Error() string {
 		return "invalid: " + err.Error()
 	}
 
-	return "error: " + strings.ReplaceAll(string(b), "\\\"", "\"")
+	return "error: " + string(b)
 }
 
 // NewError generates new typego.Error
@@ -122,4 +124,86 @@ func NewErrorFromError(err error) Error {
 	}
 
 	return &e
+}
+
+// jsonStringCleaner cleans json string from double quotes (")
+func jsonStringCleaner(jsonString string) string {
+	var cleanedJSONString string
+
+	length := len(jsonString)
+	lengthPair := length - 1
+	indexFlag := 4
+
+	for i := 0; i < length; i++ {
+		f := i + indexFlag
+
+		if f > length {
+			i -= 1
+			indexFlag -= 1
+			continue
+		}
+
+		var toBeCleaned string
+
+		if i == lengthPair {
+			toBeCleaned = jsonString[i:]
+		} else {
+			toBeCleaned = jsonString[i:f]
+		}
+
+		if toBeCleaned == "\"],\"" {
+			cleanedJSONString += "], "
+			i += indexFlag - 1
+			indexFlag = 4
+			continue
+		} else if toBeCleaned == "\":[\"" {
+			cleanedJSONString += ": ["
+			i += indexFlag - 1
+			indexFlag = 4
+			continue
+		} else if toBeCleaned == "\",\"" {
+			cleanedJSONString += ", "
+			i += indexFlag - 1
+			indexFlag = 4
+			continue
+		} else if toBeCleaned == "\":\"" {
+			cleanedJSONString += ": "
+			i += indexFlag - 1
+			indexFlag = 4
+			continue
+		} else if toBeCleaned == "{\"" {
+			cleanedJSONString += "{"
+			i += indexFlag - 1
+			indexFlag = 4
+			continue
+		} else if toBeCleaned == "\":" {
+			cleanedJSONString += ": "
+			i += indexFlag - 1
+			indexFlag = 4
+			continue
+		} else if toBeCleaned == ",\"" {
+			cleanedJSONString += ", "
+			i += indexFlag - 1
+			indexFlag = 4
+			continue
+		}
+
+		if indexFlag == 1 {
+			cleanedJSONString += toBeCleaned
+			i += indexFlag - 1
+			indexFlag = 4
+			continue
+		}
+
+		indexFlag -= 1
+
+		if indexFlag < 1 {
+			indexFlag = 4
+			continue
+		}
+
+		i -= 1
+	}
+
+	return cleanedJSONString
 }
