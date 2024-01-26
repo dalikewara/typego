@@ -111,7 +111,8 @@ func NewError(code string, message string) Error {
 	}
 }
 
-// NewErrorFromError generates new typego.Error from an error. The error.Error() must have the same string format as typego.Error.Error(), otherwise, typego.Error will return incorrect value
+// NewErrorFromError generates new typego.Error from an error. The error.Error() must have the same string format as
+// typego.Error.Error(), otherwise, typego.Error will return incorrect value
 func NewErrorFromError(err error) Error {
 	var e errorModel
 

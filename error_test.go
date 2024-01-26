@@ -2,6 +2,7 @@ package typego_test
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dalikewara/typego"
 	"github.com/stretchr/testify/assert"
 	"sync"
@@ -10,6 +11,7 @@ import (
 )
 
 func TestNewError(t *testing.T) {
+	fmt.Println(typego.NewError("01", "general error").SetHttpStatus(500).AddInfo("raw error 1", "raw error 2").AddInfo("raw error 3"))
 	assert.NotNil(t, typego.NewError("", ""))
 	assert.NotNil(t, typego.NewError("01", "general error"))
 }
@@ -92,18 +94,6 @@ func TestNewErrorFromError(t *testing.T) {
 		assert.Equal(t, 0, err.GetRPCStatus())
 		assert.Equal(t, 0, len(err.GetInfo()))
 	})
-
-	//t.Run("other_scenarios", func(t *testing.T) {
-	//	err1 := typego.NewError("01", "general error, message=1").SetHttpStatus(500).AddInfo(errors.New("raw error 1")).SetRPCStatus(13)
-	//	err2 := typego.NewError("02", "general error 2").SetHttpStatus(500).SetRPCStatus(13).AddInfo("raw error 2", err1)
-	//	err3 := typego.NewError("03", "general error 3").SetHttpStatus(500).AddInfo("raw error 3", err2)
-	//	err := typego.NewErrorFromError(err3)
-	//
-	//	fmt.Println(err1)
-	//	fmt.Println(err2)
-	//	fmt.Println(err3)
-	//	fmt.Println(err)
-	//})
 }
 
 func TestErrorModel_AsGlobalVariable(t *testing.T) {
