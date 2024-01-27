@@ -2,6 +2,9 @@
 
 ### 2024
 
+- v1.0.4 (2024-01-27)
+  - Update README
+
 - v1.0.3 (2024-01-26)
     - Update some scripts & descriptions
 

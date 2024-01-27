@@ -5,7 +5,7 @@
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/dalikewara/typego)
 ![GitHub license](https://img.shields.io/github/license/dalikewara/typego)
 
-**typego** provides custom type that compatible with primitive type data or interface (such as `error`, `string`, etc).
+**typego** provides custom type that can be used to construct information (such as success data, error data, etc).
 
 ## Getting started
 
@@ -21,7 +21,7 @@ go get github.com/dalikewara/typego
 
 #### Error
 
-`typego.Error` compatible with `error` interface or type data, so you can use it as an `error` handler. `typego.Error`
+`typego.Error` compatible with `error` interface, so you can use it as an `error` handler. `typego.Error`
 has several methods that can be used to construct error information:
 
 ```go
