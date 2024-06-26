@@ -3,7 +3,7 @@
 ### 2024
 
 - v1.0.5 (2024-06-26)
-  - Add Error Log function
+  - Add Error Log method
 
 - v1.0.4 (2024-01-27)
   - Update README
