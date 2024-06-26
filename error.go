@@ -17,7 +17,7 @@ type Error interface {
 	GetHttpStatus() int
 	GetRPCStatus() int
 	Error() string
-	Log()
+	Log() Error
 }
 
 type errorModel struct {
@@ -104,8 +104,9 @@ func (e errorModel) Error() string {
 	return "error: " + string(b)
 }
 
-func (e errorModel) Log() {
+func (e errorModel) Log() Error {
 	fmt.Println(fmt.Sprintf("%+v", e))
+	return e
 }
 
 // NewError generates new typego.Error
