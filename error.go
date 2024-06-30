@@ -6,18 +6,41 @@ import (
 )
 
 type Error interface {
+	// ChangeCode changes error code and returns its instance
 	ChangeCode(code string) Error
+
+	// ChangeMessage changes error message and returns its instance
 	ChangeMessage(message string) Error
+
+	// AddInfo adds error information and returns its instance
 	AddInfo(info ...interface{}) Error
+
+	// SetHttpStatus sets error http status and returns its instance
 	SetHttpStatus(httpStatus int) Error
+
+	// SetRPCStatus sets error rpc status and returns its instance
 	SetRPCStatus(rpcStatus int) Error
-	GetCode() string
-	GetMessage() string
-	GetInfo() []string
-	GetHttpStatus() int
-	GetRPCStatus() int
-	Error() string
+
+	// Log logs the error and return its instance
 	Log() Error
+
+	// GetCode gets error code
+	GetCode() string
+
+	// GetMessage gets error message
+	GetMessage() string
+
+	// GetInfo gets error information
+	GetInfo() []string
+
+	// GetHttpStatus gets error http status
+	GetHttpStatus() int
+
+	// GetRPCStatus gets error rpc status
+	GetRPCStatus() int
+
+	// Error returns error string
+	Error() string
 }
 
 type errorModel struct {
@@ -28,73 +51,76 @@ type errorModel struct {
 	RPCStatus  int      `json:"rpc_status,omitempty"`
 }
 
-// ChangeCode changes error code
 func (e errorModel) ChangeCode(code string) Error {
 	e.Code = code
+
 	return e
 }
 
-// ChangeMessage changes error message
 func (e errorModel) ChangeMessage(message string) Error {
 	e.Message = message
+
 	return e
 }
 
-// AddInfo adds error information
 func (e errorModel) AddInfo(info ...interface{}) Error {
 	for _, i := range info {
 		if assertedString, ok := i.(string); ok {
 			e.Info = append(e.Info, jsonStringCleaner(assertedString))
+
 			continue
 		}
+
 		if assertedError, ok := i.(error); ok {
 			e.Info = append(e.Info, jsonStringCleaner(assertedError.Error()))
+
 			continue
 		}
 
 		e.Info = append(e.Info, fmt.Sprintf("%+v", i))
 	}
+
 	return e
 }
 
-// SetHttpStatus sets error http status
 func (e errorModel) SetHttpStatus(httpStatus int) Error {
 	e.HttpStatus = httpStatus
+
 	return e
 }
 
-// SetRPCStatus sets error rpc status
 func (e errorModel) SetRPCStatus(rpcStatus int) Error {
 	e.RPCStatus = rpcStatus
+
 	return e
 }
 
-// GetCode gets error code
+func (e errorModel) Log() Error {
+	errorLogHandler(e)
+
+	return e
+}
+
 func (e errorModel) GetCode() string {
 	return e.Code
 }
 
-// GetMessage gets error message
 func (e errorModel) GetMessage() string {
 	return e.Message
 }
 
-// GetInfo gets error information
 func (e errorModel) GetInfo() []string {
 	return e.Info
 }
 
-// GetHttpStatus gets error http status
 func (e errorModel) GetHttpStatus() int {
 	return e.HttpStatus
 }
 
-// GetRPCStatus gets error rpc status
 func (e errorModel) GetRPCStatus() int {
 	return e.RPCStatus
 }
 
-// Error returns error string
 func (e errorModel) Error() string {
 	b, err := json.Marshal(e)
 	if err != nil {
@@ -102,11 +128,6 @@ func (e errorModel) Error() string {
 	}
 
 	return "error: " + string(b)
-}
-
-func (e errorModel) Log() Error {
-	fmt.Println(fmt.Sprintf("%+v", e))
-	return e
 }
 
 // NewError generates new typego.Error
@@ -162,36 +183,43 @@ func jsonStringCleaner(jsonString string) string {
 			cleanedJSONString += "], "
 			i += indexFlag - 1
 			indexFlag = 4
+
 			continue
 		} else if toBeCleaned == "\":[\"" {
 			cleanedJSONString += ": ["
 			i += indexFlag - 1
 			indexFlag = 4
+
 			continue
 		} else if toBeCleaned == "\",\"" {
 			cleanedJSONString += ", "
 			i += indexFlag - 1
 			indexFlag = 4
+
 			continue
 		} else if toBeCleaned == "\":\"" {
 			cleanedJSONString += ": "
 			i += indexFlag - 1
 			indexFlag = 4
+
 			continue
 		} else if toBeCleaned == "{\"" {
 			cleanedJSONString += "{"
 			i += indexFlag - 1
 			indexFlag = 4
+
 			continue
 		} else if toBeCleaned == "\":" {
 			cleanedJSONString += ": "
 			i += indexFlag - 1
 			indexFlag = 4
+
 			continue
 		} else if toBeCleaned == ",\"" {
 			cleanedJSONString += ", "
 			i += indexFlag - 1
 			indexFlag = 4
+
 			continue
 		}
 
@@ -199,6 +227,7 @@ func jsonStringCleaner(jsonString string) string {
 			cleanedJSONString += toBeCleaned
 			i += indexFlag - 1
 			indexFlag = 4
+
 			continue
 		}
 
@@ -206,6 +235,7 @@ func jsonStringCleaner(jsonString string) string {
 
 		if indexFlag < 1 {
 			indexFlag = 4
+
 			continue
 		}
 

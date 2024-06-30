@@ -2,6 +2,9 @@
 
 ### 2024
 
+- v1.1.0 - v1.1.0 (2024-07-01)
+  - Add log handler
+
 - v1.0.5 - v1.0.6 (2024-06-26)
   - Add Error Log method
 

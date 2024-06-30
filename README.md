@@ -17,9 +17,9 @@ You can use the `go get` method:
 go get github.com/dalikewara/typego
 ```
 
-### Usage
+## Usage
 
-#### Error
+### Error
 
 `typego.Error` compatible with `error` interface, so you can use it as an `error` handler. `typego.Error`
 has several methods that can be used to construct error information:
@@ -31,6 +31,7 @@ type Error interface {
 	AddInfo(info ...interface{}) Error
 	SetHttpStatus(httpStatus int) Error
 	SetRPCStatus(rpcStatus int) Error
+	Log() Error
 	GetCode() string
 	GetMessage() string
 	GetInfo() []string
@@ -58,6 +59,7 @@ For example:
 func main() {
     if err := myFunc(); err != nil {
         fmt.Println(err)
+		
         // output
         // error: {"code":"01","message":"general error","info":null}
     }   
@@ -70,11 +72,21 @@ func myFunc() error {
 
 ```go
 typego.NewError("01", "general error").SetHttpStatus(500).AddInfo("raw error 1", "raw error 2").AddInfo("raw error 3")
+
 // output
 // error: {"code":"01","message":"general error","info":["raw error 1","raw error 2","raw error 3"],"http_status":500}
 ```
 
-You can also generate new `typego.Error` from an `error` string:
+You can log the error information by using `Log()` method:
+
+```go
+typego.NewError("01", "general error").Log()
+
+// output
+// 2024/07/01 01:27:27 error: {"code":"01","message":"general error","info":null}
+```
+
+You can also generate new `typego.Error` from an `error`:
 
 ```go
 err := errors.New("error: {\"code\":\"01\",\"message\":\"general error\",\"http_status\":500,\"info\":[\"raw info 1\",\"raw info 2\"],\"rpc_status\":13}")
@@ -85,7 +97,36 @@ fmt.Println(typegoError.GetMessage()) // general error
 fmt.Println(typegoError.GetInfo()[1]) // raw info 2
 ```
 
+> The `error.Error()` must have the same string format as `typego.Error.Error()`, otherwise, `typego.Error` will return incorrect value
 
+#### Custom Error Log
+
+You can overwrite the default error log handler by using `typego.SetCustomErrorLog(handler ErrorLogHandler)` function:
+
+> The default error log handler is just a simple task to print the information to the std out
+
+```go
+errGeneral := typego.NewError("01", "general error")
+
+errGeneral.Log()
+
+// output
+// 2024/07/01 01:27:27 error: {"code":"01","message":"general error","info":null}
+
+typego.SetCustomErrorLog(func(err typego.Error) {
+    fmt.Println(fmt.Sprintf("hello i am a custom log! -> %+v", err))
+	
+    // or do something special here...
+    // for example: send the log info to the Slack Channel, Kafka, etc
+})
+
+errGeneral.Log()
+
+// output
+// hello i am a custom log! -> error: {"code":"01","message":"general error","info":null}
+```
+
+So, you can change the behavior of the logging as you want.
 
 ## Release
 
