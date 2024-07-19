@@ -2,6 +2,9 @@
 
 ### 2024
 
+- v1.1.1 (2024-07-19)
+  - Add debug method
+
 - v1.1.0 - v1.1.0 (2024-07-01)
   - Add log handler
 

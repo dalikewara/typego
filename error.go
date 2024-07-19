@@ -15,6 +15,9 @@ type Error interface {
 	// AddInfo adds error information and returns its instance
 	AddInfo(info ...interface{}) Error
 
+	// AddDebug adds debug information and returns its instance
+	AddDebug(debug ...interface{}) Error
+
 	// SetHttpStatus sets error http status and returns its instance
 	SetHttpStatus(httpStatus int) Error
 
@@ -33,6 +36,9 @@ type Error interface {
 	// GetInfo gets error information
 	GetInfo() []string
 
+	// GetDebug gets debug information
+	GetDebug() []string
+
 	// GetHttpStatus gets error http status
 	GetHttpStatus() int
 
@@ -49,6 +55,7 @@ type errorModel struct {
 	Info       []string `json:"info"`
 	HttpStatus int      `json:"http_status,omitempty"`
 	RPCStatus  int      `json:"rpc_status,omitempty"`
+	Debug      []string `json:"debug,omitempty"`
 }
 
 func (e errorModel) ChangeCode(code string) Error {
@@ -83,6 +90,26 @@ func (e errorModel) AddInfo(info ...interface{}) Error {
 	return e
 }
 
+func (e errorModel) AddDebug(debug ...interface{}) Error {
+	for _, i := range debug {
+		if assertedString, ok := i.(string); ok {
+			e.Debug = append(e.Debug, jsonStringCleaner(assertedString))
+
+			continue
+		}
+
+		if assertedError, ok := i.(error); ok {
+			e.Debug = append(e.Debug, jsonStringCleaner(assertedError.Error()))
+
+			continue
+		}
+
+		e.Debug = append(e.Debug, fmt.Sprintf("%+v", i))
+	}
+
+	return e
+}
+
 func (e errorModel) SetHttpStatus(httpStatus int) Error {
 	e.HttpStatus = httpStatus
 
@@ -111,6 +138,10 @@ func (e errorModel) GetMessage() string {
 
 func (e errorModel) GetInfo() []string {
 	return e.Info
+}
+
+func (e errorModel) GetDebug() []string {
+	return e.Debug
 }
 
 func (e errorModel) GetHttpStatus() int {

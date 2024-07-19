@@ -38,6 +38,12 @@ func TestErrorModel_AddInfo(t *testing.T) {
 	}
 }
 
+func TestErrorModel_AddDebug(t *testing.T) {
+	if err := typego.NewError("", "").AddDebug(errors.New("raw error")); err == nil {
+		log.Fatal("`err` must not nil")
+	}
+}
+
 func TestErrorModel_SetHttpStatus(t *testing.T) {
 	if err := typego.NewError("", "").SetHttpStatus(500); err == nil {
 		log.Fatal("`err` must not nil")
@@ -90,6 +96,26 @@ func TestErrorModel_GetInfo(t *testing.T) {
 	t.Run("any", func(t *testing.T) {
 		if errInfos := typego.NewError("", "").AddInfo(1).GetInfo(); fmt.Sprintf("%v", errInfos) != fmt.Sprintf("%v", []string{"1"}) {
 			log.Fatal("`errInfos` must be `[]string{\"1\"}`")
+		}
+	})
+}
+
+func TestErrorModel_GetDebug(t *testing.T) {
+	t.Run("error", func(t *testing.T) {
+		if errDebugs := typego.NewError("", "").AddDebug(errors.New("raw error"), errors.New("raw error 2")).AddDebug(errors.New("raw error 3")).GetDebug(); fmt.Sprintf("%v", errDebugs) != fmt.Sprintf("%v", []string{"raw error", "raw error 2", "raw error 3"}) {
+			log.Fatal("`errDebugs` must be `[]string{\"raw error\", \"raw error 2\", \"raw error 3\"}`")
+		}
+	})
+
+	t.Run("string", func(t *testing.T) {
+		if errDebugs := typego.NewError("", "").AddDebug("raw error", "raw error 2").AddDebug("raw error 3").GetDebug(); fmt.Sprintf("%v", errDebugs) != fmt.Sprintf("%v", []string{"raw error", "raw error 2", "raw error 3"}) {
+			log.Fatal("`errDebugs` must be `[]string{\"raw error\", \"raw error 2\", \"raw error 3\"}`")
+		}
+	})
+
+	t.Run("any", func(t *testing.T) {
+		if errDebugs := typego.NewError("", "").AddDebug(1).GetDebug(); fmt.Sprintf("%v", errDebugs) != fmt.Sprintf("%v", []string{"1"}) {
+			log.Fatal("`errDebugs` must be `[]string{\"1\"}`")
 		}
 	})
 }
