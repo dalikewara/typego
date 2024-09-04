@@ -18,6 +18,9 @@ type Error interface {
 	// AddDebug adds debug information and returns its instance
 	AddDebug(debug ...interface{}) Error
 
+	// SetProcessName sets process name
+	SetProcessName(processName string) Error
+
 	// SetHttpStatus sets error http status and returns its instance
 	SetHttpStatus(httpStatus int) Error
 
@@ -50,12 +53,14 @@ type Error interface {
 }
 
 type errorModel struct {
-	Code       string   `json:"code"`
-	Message    string   `json:"message"`
-	Info       []string `json:"info"`
-	HttpStatus int      `json:"http_status,omitempty"`
-	RPCStatus  int      `json:"rpc_status,omitempty"`
-	Debug      []string `json:"debug,omitempty"`
+	Level       string   `json:"level"`
+	ProcessName string   `json:"process_name,omitempty"`
+	Code        string   `json:"code"`
+	Message     string   `json:"message"`
+	Info        []string `json:"info"`
+	HttpStatus  int      `json:"http_status,omitempty"`
+	RPCStatus   int      `json:"rpc_status,omitempty"`
+	Debug       []string `json:"debug,omitempty"`
 }
 
 func (e errorModel) ChangeCode(code string) Error {
@@ -110,6 +115,12 @@ func (e errorModel) AddDebug(debug ...interface{}) Error {
 	return e
 }
 
+func (e errorModel) SetProcessName(processName string) Error {
+	e.ProcessName = processName
+
+	return e
+}
+
 func (e errorModel) SetHttpStatus(httpStatus int) Error {
 	e.HttpStatus = httpStatus
 
@@ -155,15 +166,16 @@ func (e errorModel) GetRPCStatus() int {
 func (e errorModel) Error() string {
 	b, err := json.Marshal(e)
 	if err != nil {
-		return "invalid: " + err.Error()
+		return err.Error()
 	}
 
-	return "error: " + string(b)
+	return string(b)
 }
 
 // NewError generates new typego.Error
 func NewError(code string, message string) Error {
 	return &errorModel{
+		Level:   "error",
 		Code:    code,
 		Message: message,
 	}
@@ -174,12 +186,8 @@ func NewError(code string, message string) Error {
 func NewErrorFromError(err error) Error {
 	var e errorModel
 
-	errStr := err.Error()
-
-	if len(errStr) > 7 {
-		if er := json.Unmarshal([]byte(errStr[7:]), &e); er != nil {
-			return &e
-		}
+	if er := json.Unmarshal([]byte(err.Error()), &e); er != nil {
+		return &e
 	}
 
 	return &e

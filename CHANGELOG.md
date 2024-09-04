@@ -2,6 +2,11 @@
 
 ### 2024
 
+- v1.3.0 (2024-09-04)
+  - Change log handler
+  - Add `Level` & `ProcessName` param
+  - Add `SetProcessName` method
+
 - v1.1.1 - v1.2.0 (2024-07-19)
   - Add debug method
   - Add `Info` type

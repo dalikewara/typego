@@ -26,6 +26,12 @@ func TestInfoModel_AddDebug(t *testing.T) {
 	}
 }
 
+func TestInfoModel_SetProcessName(t *testing.T) {
+	if info := typego.NewInfo().SetProcessName("test"); info == nil {
+		log.Fatal("`info` must not nil")
+	}
+}
+
 func TestInfoModel_Log(t *testing.T) {
 	_ = typego.NewInfo().Log()
 }

@@ -26,18 +26,21 @@ has several methods that can be used to construct error information:
 
 ```go
 type Error interface {
-	ChangeCode(code string) Error
-	ChangeMessage(message string) Error
-	AddInfo(info ...interface{}) Error
-	SetHttpStatus(httpStatus int) Error
-	SetRPCStatus(rpcStatus int) Error
-	Log() Error
-	GetCode() string
-	GetMessage() string
-	GetInfo() []string
-	GetHttpStatus() int
-	GetRPCStatus() int
-	Error() string
+    ChangeCode(code string) Error
+    ChangeMessage(message string) Error
+    AddInfo(info ...interface{}) Error
+    AddDebug(debug ...interface{}) Error
+    SetProcessName(processName string) Error
+    SetHttpStatus(httpStatus int) Error
+    SetRPCStatus(rpcStatus int) Error
+    Log() Error
+    GetCode() string
+    GetMessage() string
+    GetInfo() []string
+    GetDebug() []string
+    GetHttpStatus() int
+    GetRPCStatus() int
+    Error() string
 }
 ```
 
@@ -45,11 +48,14 @@ and it will generate the error information based on this structure:
 
 ```go
 type errorModel struct {
-	Code       string   `json:"code"`
-	Message    string   `json:"message"`
-	Info       []string `json:"info"`
-	HttpStatus int      `json:"http_status,omitempty"`
-	RPCStatus  int      `json:"rpc_status,omitempty"`
+    Level       string   `json:"level"`
+    ProcessName string   `json:"process_name,omitempty"`
+    Code        string   `json:"code"`
+    Message     string   `json:"message"`
+    Info        []string `json:"info"`
+    HttpStatus  int      `json:"http_status,omitempty"`
+    RPCStatus   int      `json:"rpc_status,omitempty"`
+    Debug       []string `json:"debug,omitempty"`
 }
 ```
 
@@ -61,7 +67,7 @@ func main() {
         fmt.Println(err)
 		
         // output
-        // error: {"code":"01","message":"general error","info":null}
+        // {"level":"error","code":"01","message":"general error","info":null}
     }   
 }
 
@@ -74,7 +80,7 @@ func myFunc() error {
 typego.NewError("01", "general error").SetHttpStatus(500).AddInfo("raw error 1", "raw error 2").AddInfo("raw error 3")
 
 // output
-// error: {"code":"01","message":"general error","info":["raw error 1","raw error 2","raw error 3"],"http_status":500}
+// {"level":"error","code":"01","message":"general error","info":["raw error 1","raw error 2","raw error 3"],"http_status":500}
 ```
 
 You can log the error information by using `Log()` method:
@@ -83,13 +89,13 @@ You can log the error information by using `Log()` method:
 typego.NewError("01", "general error").Log()
 
 // output
-// 2024/07/01 01:27:27 error: {"code":"01","message":"general error","info":null}
+// {"level":"error","code":"01","message":"general error","info":null}
 ```
 
 You can also generate new `typego.Error` from an `error`:
 
 ```go
-err := errors.New("error: {\"code\":\"01\",\"message\":\"general error\",\"http_status\":500,\"info\":[\"raw info 1\",\"raw info 2\"],\"rpc_status\":13}")
+err := errors.New("{\"code\":\"01\",\"message\":\"general error\",\"http_status\":500,\"info\":[\"raw info 1\",\"raw info 2\"],\"rpc_status\":13}")
 typegoError := typego.NewErrorFromError(err)
 
 fmt.Println(typegoError.GetCode()) // 01
@@ -111,7 +117,7 @@ errGeneral := typego.NewError("01", "general error")
 errGeneral.Log()
 
 // output
-// 2024/07/01 01:27:27 error: {"code":"01","message":"general error","info":null}
+// {"level":"error","code":"01","message":"general error","info":null}
 
 typego.SetCustomErrorLog(func(err typego.Error) {
     fmt.Println(fmt.Sprintf("hello i am a custom log! -> %+v", err))
@@ -123,7 +129,7 @@ typego.SetCustomErrorLog(func(err typego.Error) {
 errGeneral.Log()
 
 // output
-// hello i am a custom log! -> error: {"code":"01","message":"general error","info":null}
+// hello i am a custom log! -> {"level":"error","code":"01","message":"general error","info":null}
 ```
 
 So, you can change the behavior of the logging as you want.

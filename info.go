@@ -9,6 +9,9 @@ type Info interface {
 	// AddDebug adds debug information and returns its instance
 	AddDebug(debug ...interface{}) Info
 
+	// SetProcessName sets process name
+	SetProcessName(processName string) Info
+
 	// Log logs the information and return its instance
 	Log() Info
 
@@ -20,8 +23,10 @@ type Info interface {
 }
 
 type infoModel struct {
-	Info  []string `json:"info"`
-	Debug []string `json:"debug,omitempty"`
+	Level       string   `json:"level"`
+	ProcessName string   `json:"process_name,omitempty"`
+	Info        []string `json:"info"`
+	Debug       []string `json:"debug,omitempty"`
 }
 
 func (i infoModel) AddInfo(info ...interface{}) Info {
@@ -64,6 +69,12 @@ func (i infoModel) AddDebug(debug ...interface{}) Info {
 	return i
 }
 
+func (i infoModel) SetProcessName(processName string) Info {
+	i.ProcessName = processName
+
+	return i
+}
+
 func (i infoModel) Log() Info {
 	infoLogHandler(i)
 
@@ -80,5 +91,7 @@ func (i infoModel) GetDebug() []string {
 
 // NewInfo generates new typego.Info
 func NewInfo() Info {
-	return &infoModel{}
+	return &infoModel{
+		Level: "info",
+	}
 }

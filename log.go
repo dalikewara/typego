@@ -1,16 +1,26 @@
 package typego
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
 )
 
 var errorLogHandler = func(err Error) {
-	log.Println(fmt.Sprintf("%+v", err))
+	b, e := json.Marshal(err)
+	if e != nil {
+		fmt.Println(e)
+	}
+
+	fmt.Println(string(b))
 }
 
 var infoLogHandler = func(info Info) {
-	log.Println(fmt.Sprintf("info: %+v", info))
+	b, e := json.Marshal(info)
+	if e != nil {
+		fmt.Println(e)
+	}
+
+	fmt.Println(string(b))
 }
 
 type ErrorLogHandler func(err Error)

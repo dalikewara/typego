@@ -44,6 +44,12 @@ func TestErrorModel_AddDebug(t *testing.T) {
 	}
 }
 
+func TestErrorModel_SetProcessName(t *testing.T) {
+	if err := typego.NewError("", "").SetProcessName("test"); err == nil {
+		log.Fatal("`err` must not nil")
+	}
+}
+
 func TestErrorModel_SetHttpStatus(t *testing.T) {
 	if err := typego.NewError("", "").SetHttpStatus(500); err == nil {
 		log.Fatal("`err` must not nil")
@@ -141,14 +147,14 @@ func TestErrorModel_GetRPCStatus(t *testing.T) {
 }
 
 func TestErrorModel_Error(t *testing.T) {
-	if err := typego.NewError("01", "general error").SetHttpStatus(500).SetRPCStatus(13).AddInfo(errors.New("raw error").Error()).AddInfo("raw error 2").Error(); err != "error: {\"code\":\"01\",\"message\":\"general error\",\"info\":[\"raw error\",\"raw error 2\"],\"http_status\":500,\"rpc_status\":13}" {
-		log.Fatal("`err` must be `error: {\"code\":\"01\",\"message\":\"general error\",\"info\":[\"raw error\",\"raw error 2\"],\"http_status\":500,\"rpc_status\":13}`")
+	if err := typego.NewError("01", "general error").SetHttpStatus(500).SetRPCStatus(13).AddInfo(errors.New("raw error").Error()).AddInfo("raw error 2").Error(); err != "{\"level\":\"error\",\"code\":\"01\",\"message\":\"general error\",\"info\":[\"raw error\",\"raw error 2\"],\"http_status\":500,\"rpc_status\":13}" {
+		log.Fatal("`err` must be `{\"level\":\"error\",\"code\":\"01\",\"message\":\"general error\",\"info\":[\"raw error\",\"raw error 2\"],\"http_status\":500,\"rpc_status\":13}`")
 	}
 }
 
 func TestNewErrorFromError(t *testing.T) {
 	t.Run("valid_format", func(t *testing.T) {
-		err := typego.NewErrorFromError(errors.New("error: {\"code\":\"01\",\"message\":\"general error\",\"http_status\":500,\"info\":[\"raw info\",\"raw info 2\"],\"rpc_status\":13}"))
+		err := typego.NewErrorFromError(errors.New("{\"code\":\"01\",\"message\":\"general error\",\"http_status\":500,\"info\":[\"raw info\",\"raw info 2\"],\"rpc_status\":13}"))
 
 		if errCode := err.GetCode(); errCode != "01" {
 			log.Fatal("`errCode` must be `01`")
