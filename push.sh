@@ -1,6 +1,6 @@
 #!/bin/sh
 
-git pull origin master || true
+git pull github master || true
 git add . || true
 git status || true
 
@@ -10,4 +10,4 @@ else
     git commit -m "update some scripts" || true
 fi
 
-git push origin master
+git push github master
