@@ -1,84 +1,114 @@
 package typego
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type Info interface {
 	// AddInfo adds information and returns its instance
 	AddInfo(info ...interface{}) Info
 
-	// AddDebug adds debug information and returns its instance
+	// AddDebug adds information debug and returns its instance
 	AddDebug(debug ...interface{}) Info
+
+	// SetProcessID sets process id
+	SetProcessID(processID string) Info
 
 	// SetProcessName sets process name
 	SetProcessName(processName string) Info
 
-	// Log logs the information and return its instance
-	Log() Info
+	// GetProcessID gets process id
+	GetProcessID() string
+
+	// GetProcessName gets process name
+	GetProcessName() string
 
 	// GetInfo gets information
 	GetInfo() []string
 
-	// GetDebug gets debug information
+	// GetDebug gets information debug
 	GetDebug() []string
+
+	// Log logs the information and return its instance
+	Log() Info
+
+	// String returns the information in string
+	String() string
 }
 
 type infoModel struct {
 	Level       string   `json:"level"`
+	ProcessID   string   `json:"process_id,omitempty"`
 	ProcessName string   `json:"process_name,omitempty"`
 	Info        []string `json:"info"`
 	Debug       []string `json:"debug,omitempty"`
 }
 
 func (i infoModel) AddInfo(info ...interface{}) Info {
+	additionalInfo := make([]string, 0, len(info))
+
 	for _, j := range info {
-		if assertedString, ok := j.(string); ok {
-			i.Info = append(i.Info, jsonStringCleaner(assertedString))
-
-			continue
+		switch v := j.(type) {
+		case string:
+			additionalInfo = append(additionalInfo, jsonStringCleaner(v))
+		case error:
+			additionalInfo = append(additionalInfo, jsonStringCleaner(v.Error()))
+		default:
+			jsonValue, err := json.Marshal(v)
+			if err != nil {
+				additionalInfo = append(additionalInfo, fmt.Sprintf("%+v", v))
+			} else {
+				additionalInfo = append(additionalInfo, string(jsonValue))
+			}
 		}
-
-		if assertedError, ok := j.(error); ok {
-			i.Info = append(i.Info, jsonStringCleaner(assertedError.Error()))
-
-			continue
-		}
-
-		i.Info = append(i.Info, fmt.Sprintf("%+v", j))
 	}
+
+	i.Info = append(i.Info, additionalInfo...)
 
 	return i
 }
 
 func (i infoModel) AddDebug(debug ...interface{}) Info {
+	additionalDebug := make([]string, 0, len(debug))
+
 	for _, j := range debug {
-		if assertedString, ok := j.(string); ok {
-			i.Debug = append(i.Debug, jsonStringCleaner(assertedString))
-
-			continue
+		switch v := j.(type) {
+		case string:
+			additionalDebug = append(additionalDebug, jsonStringCleaner(v))
+		case error:
+			additionalDebug = append(additionalDebug, jsonStringCleaner(v.Error()))
+		default:
+			jsonValue, err := json.Marshal(v)
+			if err != nil {
+				additionalDebug = append(additionalDebug, fmt.Sprintf("%+v", v))
+			} else {
+				additionalDebug = append(additionalDebug, string(jsonValue))
+			}
 		}
-
-		if assertedError, ok := j.(error); ok {
-			i.Debug = append(i.Debug, jsonStringCleaner(assertedError.Error()))
-
-			continue
-		}
-
-		i.Debug = append(i.Debug, fmt.Sprintf("%+v", j))
 	}
 
+	i.Debug = append(i.Debug, additionalDebug...)
+
+	return i
+}
+
+func (i infoModel) SetProcessID(processID string) Info {
+	i.ProcessID = processID
 	return i
 }
 
 func (i infoModel) SetProcessName(processName string) Info {
 	i.ProcessName = processName
-
 	return i
 }
 
-func (i infoModel) Log() Info {
-	infoLogHandler(i)
+func (i infoModel) GetProcessID() string {
+	return i.ProcessID
+}
 
-	return i
+func (i infoModel) GetProcessName() string {
+	return i.ProcessName
 }
 
 func (i infoModel) GetInfo() []string {
@@ -87,6 +117,20 @@ func (i infoModel) GetInfo() []string {
 
 func (i infoModel) GetDebug() []string {
 	return i.Debug
+}
+
+func (i infoModel) Log() Info {
+	infoLogHandler(i)
+	return i
+}
+
+func (i infoModel) String() string {
+	b, err := json.Marshal(i)
+	if err != nil {
+		return err.Error()
+	}
+
+	return string(b)
 }
 
 // NewInfo generates new typego.Info

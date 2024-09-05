@@ -1,92 +1,52 @@
 package typego
 
+import "strings"
+
 // jsonStringCleaner cleans json string from double quotes (")
 func jsonStringCleaner(jsonString string) string {
-	var cleanedJSONString string
+	var builder strings.Builder
 
 	length := len(jsonString)
-	lengthPair := length - 1
-	indexFlag := 4
+	i := 0
 
-	for i := 0; i < length; i++ {
-		f := i + indexFlag
-
-		if f > length {
-			i -= 1
-			indexFlag -= 1
-			continue
+	for i < length {
+		if i+4 <= length {
+			switch jsonString[i : i+4] {
+			case "\"],\"":
+				builder.WriteString("], ")
+				i += 4
+				continue
+			case "\":[\"":
+				builder.WriteString(": [")
+				i += 4
+				continue
+			case "\",\"":
+				builder.WriteString(", ")
+				i += 4
+				continue
+			case "\":\"":
+				builder.WriteString(": ")
+				i += 4
+				continue
+			}
 		}
 
-		var toBeCleaned string
-
-		if i == lengthPair {
-			toBeCleaned = jsonString[i:]
-		} else {
-			toBeCleaned = jsonString[i:f]
+		if i+3 <= length {
+			switch jsonString[i : i+3] {
+			case "{\"\"":
+				builder.WriteString("{")
+				i += 3
+				continue
+			case ",\"":
+				builder.WriteString(", ")
+				i += 2
+				continue
+			}
 		}
 
-		if toBeCleaned == "\"],\"" {
-			cleanedJSONString += "], "
-			i += indexFlag - 1
-			indexFlag = 4
-
-			continue
-		} else if toBeCleaned == "\":[\"" {
-			cleanedJSONString += ": ["
-			i += indexFlag - 1
-			indexFlag = 4
-
-			continue
-		} else if toBeCleaned == "\",\"" {
-			cleanedJSONString += ", "
-			i += indexFlag - 1
-			indexFlag = 4
-
-			continue
-		} else if toBeCleaned == "\":\"" {
-			cleanedJSONString += ": "
-			i += indexFlag - 1
-			indexFlag = 4
-
-			continue
-		} else if toBeCleaned == "{\"" {
-			cleanedJSONString += "{"
-			i += indexFlag - 1
-			indexFlag = 4
-
-			continue
-		} else if toBeCleaned == "\":" {
-			cleanedJSONString += ": "
-			i += indexFlag - 1
-			indexFlag = 4
-
-			continue
-		} else if toBeCleaned == ",\"" {
-			cleanedJSONString += ", "
-			i += indexFlag - 1
-			indexFlag = 4
-
-			continue
-		}
-
-		if indexFlag == 1 {
-			cleanedJSONString += toBeCleaned
-			i += indexFlag - 1
-			indexFlag = 4
-
-			continue
-		}
-
-		indexFlag -= 1
-
-		if indexFlag < 1 {
-			indexFlag = 4
-
-			continue
-		}
-
-		i -= 1
+		builder.WriteByte(jsonString[i])
+		i++
 	}
 
-	return cleanedJSONString
+	return builder.String()
 }

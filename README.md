@@ -28,18 +28,21 @@ has several methods that can be used to construct error information:
 type Error interface {
     ChangeCode(code string) Error
     ChangeMessage(message string) Error
-    AddInfo(info ...interface{}) Error
-    AddDebug(debug ...interface{}) Error
+    AddInfo(info ...any) Error
+    AddDebug(debug ...any) Error
+    SetProcessID(processID string) Error
     SetProcessName(processName string) Error
     SetHttpStatus(httpStatus int) Error
     SetRPCStatus(rpcStatus int) Error
-    Log() Error
+    GetProcessID() string
+    GetProcessName() string
     GetCode() string
     GetMessage() string
     GetInfo() []string
     GetDebug() []string
     GetHttpStatus() int
     GetRPCStatus() int
+    Log() Error
     Error() string
 }
 ```
@@ -49,6 +52,7 @@ and it will generate the error information based on this structure:
 ```go
 type errorModel struct {
     Level       string   `json:"level"`
+    ProcessID   string   `json:"process_id,omitempty"`
     ProcessName string   `json:"process_name,omitempty"`
     Code        string   `json:"code"`
     Message     string   `json:"message"`

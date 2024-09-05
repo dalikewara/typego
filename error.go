@@ -13,10 +13,13 @@ type Error interface {
 	ChangeMessage(message string) Error
 
 	// AddInfo adds error information and returns its instance
-	AddInfo(info ...interface{}) Error
+	AddInfo(info ...any) Error
 
 	// AddDebug adds debug information and returns its instance
-	AddDebug(debug ...interface{}) Error
+	AddDebug(debug ...any) Error
+
+	// SetProcessID sets process id
+	SetProcessID(processID string) Error
 
 	// SetProcessName sets process name
 	SetProcessName(processName string) Error
@@ -27,8 +30,11 @@ type Error interface {
 	// SetRPCStatus sets error rpc status and returns its instance
 	SetRPCStatus(rpcStatus int) Error
 
-	// Log logs the error and return its instance
-	Log() Error
+	// GetProcessID gets process id
+	GetProcessID() string
+
+	// GetProcessName gets process name
+	GetProcessName() string
 
 	// GetCode gets error code
 	GetCode() string
@@ -48,12 +54,16 @@ type Error interface {
 	// GetRPCStatus gets error rpc status
 	GetRPCStatus() int
 
+	// Log logs the error and return its instance
+	Log() Error
+
 	// Error returns error string
 	Error() string
 }
 
 type errorModel struct {
 	Level       string   `json:"level"`
+	ProcessID   string   `json:"process_id,omitempty"`
 	ProcessName string   `json:"process_name,omitempty"`
 	Code        string   `json:"code"`
 	Message     string   `json:"message"`
@@ -63,80 +73,90 @@ type errorModel struct {
 	Debug       []string `json:"debug,omitempty"`
 }
 
+func (e errorModel) SetProcessID(processID string) Error {
+	e.ProcessID = processID
+	return e
+}
+
 func (e errorModel) ChangeCode(code string) Error {
 	e.Code = code
-
 	return e
 }
 
 func (e errorModel) ChangeMessage(message string) Error {
 	e.Message = message
-
 	return e
 }
 
-func (e errorModel) AddInfo(info ...interface{}) Error {
+func (e errorModel) AddInfo(info ...any) Error {
+	additionalInfo := make([]string, 0, len(info))
+
 	for _, i := range info {
-		if assertedString, ok := i.(string); ok {
-			e.Info = append(e.Info, jsonStringCleaner(assertedString))
-
-			continue
+		switch v := i.(type) {
+		case string:
+			additionalInfo = append(additionalInfo, jsonStringCleaner(v))
+		case error:
+			additionalInfo = append(additionalInfo, jsonStringCleaner(v.Error()))
+		default:
+			jsonValue, err := json.Marshal(v)
+			if err != nil {
+				additionalInfo = append(additionalInfo, fmt.Sprintf("%+v", v))
+			} else {
+				additionalInfo = append(additionalInfo, string(jsonValue))
+			}
 		}
-
-		if assertedError, ok := i.(error); ok {
-			e.Info = append(e.Info, jsonStringCleaner(assertedError.Error()))
-
-			continue
-		}
-
-		e.Info = append(e.Info, fmt.Sprintf("%+v", i))
 	}
+
+	e.Info = append(e.Info, additionalInfo...)
 
 	return e
 }
 
-func (e errorModel) AddDebug(debug ...interface{}) Error {
+func (e errorModel) AddDebug(debug ...any) Error {
+	additionalDebug := make([]string, 0, len(debug))
+
 	for _, i := range debug {
-		if assertedString, ok := i.(string); ok {
-			e.Debug = append(e.Debug, jsonStringCleaner(assertedString))
-
-			continue
+		switch v := i.(type) {
+		case string:
+			additionalDebug = append(additionalDebug, jsonStringCleaner(v))
+		case error:
+			additionalDebug = append(additionalDebug, jsonStringCleaner(v.Error()))
+		default:
+			jsonValue, err := json.Marshal(v)
+			if err != nil {
+				additionalDebug = append(additionalDebug, fmt.Sprintf("%+v", v))
+			} else {
+				additionalDebug = append(additionalDebug, string(jsonValue))
+			}
 		}
-
-		if assertedError, ok := i.(error); ok {
-			e.Debug = append(e.Debug, jsonStringCleaner(assertedError.Error()))
-
-			continue
-		}
-
-		e.Debug = append(e.Debug, fmt.Sprintf("%+v", i))
 	}
+
+	e.Debug = append(e.Debug, additionalDebug...)
 
 	return e
 }
 
 func (e errorModel) SetProcessName(processName string) Error {
 	e.ProcessName = processName
-
 	return e
 }
 
 func (e errorModel) SetHttpStatus(httpStatus int) Error {
 	e.HttpStatus = httpStatus
-
 	return e
 }
 
 func (e errorModel) SetRPCStatus(rpcStatus int) Error {
 	e.RPCStatus = rpcStatus
-
 	return e
 }
 
-func (e errorModel) Log() Error {
-	errorLogHandler(e)
+func (e errorModel) GetProcessID() string {
+	return e.ProcessID
+}
 
-	return e
+func (e errorModel) GetProcessName() string {
+	return e.ProcessName
 }
 
 func (e errorModel) GetCode() string {
@@ -161,6 +181,11 @@ func (e errorModel) GetHttpStatus() int {
 
 func (e errorModel) GetRPCStatus() int {
 	return e.RPCStatus
+}
+
+func (e errorModel) Log() Error {
+	errorLogHandler(e)
+	return e
 }
 
 func (e errorModel) Error() string {

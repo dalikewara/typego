@@ -2,6 +2,10 @@
 
 ### 2024
 
+- v1.4.0 (2024-09-06)
+  - Refactor
+  - Add `ProcessID` param & methods
+
 - v1.3.1 (2024-09-05)
   - Fix some scripts
 

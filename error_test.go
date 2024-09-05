@@ -46,6 +46,12 @@ func TestErrorModel_AddDebug(t *testing.T) {
 	}
 }
 
+func TestErrorModel_SetProcessID(t *testing.T) {
+	if err := typego.NewError("", "").SetProcessID("123"); err == nil {
+		log.Fatal("`err` must not nil")
+	}
+}
+
 func TestErrorModel_SetProcessName(t *testing.T) {
 	if err := typego.NewError("", "").SetProcessName("test"); err == nil {
 		log.Fatal("`err` must not nil")
@@ -64,8 +70,16 @@ func TestErrorModel_SetRPCStatus(t *testing.T) {
 	}
 }
 
-func TestErrorModel_Log(t *testing.T) {
-	_ = typego.NewError("01", "general error").Log()
+func TestErrorModel_GetProcessID(t *testing.T) {
+	if errProcessID := typego.NewError("", "").SetProcessID("123").GetProcessID(); errProcessID != "123" {
+		log.Fatal("`errProcessID` must be `123`")
+	}
+}
+
+func TestErrorModel_GetProcessName(t *testing.T) {
+	if errProcessName := typego.NewError("", "").SetProcessName("test").GetProcessName(); errProcessName != "test" {
+		log.Fatal("`errProcessName` must be `test`")
+	}
 }
 
 func TestErrorModel_GetCode(t *testing.T) {
@@ -146,6 +160,10 @@ func TestErrorModel_GetRPCStatus(t *testing.T) {
 	if errRPCStatus := typego.NewError("", "").SetRPCStatus(10).GetRPCStatus(); errRPCStatus != 10 {
 		log.Fatal("`errRPCStatus` must be `10`")
 	}
+}
+
+func TestErrorModel_Log(t *testing.T) {
+	_ = typego.NewError("01", "general error").Log()
 }
 
 func TestErrorModel_Error(t *testing.T) {
