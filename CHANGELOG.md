@@ -2,6 +2,9 @@
 
 ### 2024
 
+- v1.3.1 (2024-09-05)
+  - Fix some scripts
+
 - v1.3.0 (2024-09-04)
   - Change log handler
   - Add `Level` & `ProcessName` param

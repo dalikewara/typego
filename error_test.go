@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var globalErr = typego.NewError("01", "")
+
 func TestNewError(t *testing.T) {
 	if err := typego.NewError("", ""); err == nil {
 		log.Fatal("`err` must not nil")
@@ -212,7 +214,6 @@ func TestNewErrorFromError(t *testing.T) {
 
 func TestErrorModel_AsGlobalVariable(t *testing.T) {
 	errMap := make(map[string]string)
-	err := typego.NewError("01", "")
 
 	var wg sync.WaitGroup
 	var lock = sync.RWMutex{}
@@ -222,11 +223,10 @@ func TestErrorModel_AsGlobalVariable(t *testing.T) {
 	go func(w *sync.WaitGroup) {
 		defer w.Done()
 
-		e := err.ChangeCode("02")
 		time.Sleep(2 * time.Second)
 
 		lock.Lock()
-		errMap["1"] = e.GetCode()
+		errMap["1"] = globalErr.GetCode()
 		lock.Unlock()
 	}(&wg)
 
@@ -235,18 +235,15 @@ func TestErrorModel_AsGlobalVariable(t *testing.T) {
 	go func(w *sync.WaitGroup) {
 		defer w.Done()
 
-		time.Sleep(1 * time.Second)
-		e := err.ChangeCode("03")
-
 		lock.Lock()
-		errMap["2"] = e.GetCode()
+		errMap["2"] = globalErr.ChangeCode("03").GetCode()
 		lock.Unlock()
 	}(&wg)
 
 	wg.Wait()
 
-	if errCode := errMap["1"]; errCode != "02" {
-		log.Fatal("`errCode` must be `02`")
+	if errCode := errMap["1"]; errCode != "01" {
+		log.Fatal("`errCode` must be `01`")
 	}
 
 	if errCode2 := errMap["2"]; errCode2 != "03" {
