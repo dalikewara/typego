@@ -2,8 +2,8 @@ package typego
 
 import "strings"
 
-// jsonStringCleaner cleans json string from double quotes (")
-func jsonStringCleaner(jsonString string) string {
+// JSONStringCleaner cleans json string from double quotes (")
+func JSONStringCleaner(jsonString string) string {
 	var builder strings.Builder
 
 	length := len(jsonString)

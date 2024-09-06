@@ -94,9 +94,9 @@ func (e errorModel) AddInfo(info ...any) Error {
 	for _, i := range info {
 		switch v := i.(type) {
 		case string:
-			additionalInfo = append(additionalInfo, jsonStringCleaner(v))
+			additionalInfo = append(additionalInfo, JSONStringCleaner(v))
 		case error:
-			additionalInfo = append(additionalInfo, jsonStringCleaner(v.Error()))
+			additionalInfo = append(additionalInfo, JSONStringCleaner(v.Error()))
 		default:
 			jsonValue, err := json.Marshal(v)
 			if err != nil {
@@ -118,9 +118,9 @@ func (e errorModel) AddDebug(debug ...any) Error {
 	for _, i := range debug {
 		switch v := i.(type) {
 		case string:
-			additionalDebug = append(additionalDebug, jsonStringCleaner(v))
+			additionalDebug = append(additionalDebug, JSONStringCleaner(v))
 		case error:
-			additionalDebug = append(additionalDebug, jsonStringCleaner(v.Error()))
+			additionalDebug = append(additionalDebug, JSONStringCleaner(v.Error()))
 		default:
 			jsonValue, err := json.Marshal(v)
 			if err != nil {

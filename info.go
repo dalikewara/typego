@@ -51,9 +51,9 @@ func (i infoModel) AddInfo(info ...interface{}) Info {
 	for _, j := range info {
 		switch v := j.(type) {
 		case string:
-			additionalInfo = append(additionalInfo, jsonStringCleaner(v))
+			additionalInfo = append(additionalInfo, JSONStringCleaner(v))
 		case error:
-			additionalInfo = append(additionalInfo, jsonStringCleaner(v.Error()))
+			additionalInfo = append(additionalInfo, JSONStringCleaner(v.Error()))
 		default:
 			jsonValue, err := json.Marshal(v)
 			if err != nil {
@@ -75,9 +75,9 @@ func (i infoModel) AddDebug(debug ...interface{}) Info {
 	for _, j := range debug {
 		switch v := j.(type) {
 		case string:
-			additionalDebug = append(additionalDebug, jsonStringCleaner(v))
+			additionalDebug = append(additionalDebug, JSONStringCleaner(v))
 		case error:
-			additionalDebug = append(additionalDebug, jsonStringCleaner(v.Error()))
+			additionalDebug = append(additionalDebug, JSONStringCleaner(v.Error()))
 		default:
 			jsonValue, err := json.Marshal(v)
 			if err != nil {
