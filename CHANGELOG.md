@@ -2,7 +2,7 @@
 
 ### 2024
 
-- v1.4.0 - v1.4.1 (2024-09-06)
+- v1.4.0 - v1.4.2 (2024-09-06)
   - Refactor
   - Add `ProcessID` param & methods
 

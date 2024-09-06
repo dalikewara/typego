@@ -59,7 +59,7 @@ func (i infoModel) AddInfo(info ...interface{}) Info {
 			if err != nil {
 				additionalInfo = append(additionalInfo, fmt.Sprintf("%+v", v))
 			} else {
-				additionalInfo = append(additionalInfo, string(jsonValue))
+				additionalInfo = append(additionalInfo, JSONStringCleaner(string(jsonValue)))
 			}
 		}
 	}
@@ -83,7 +83,7 @@ func (i infoModel) AddDebug(debug ...interface{}) Info {
 			if err != nil {
 				additionalDebug = append(additionalDebug, fmt.Sprintf("%+v", v))
 			} else {
-				additionalDebug = append(additionalDebug, string(jsonValue))
+				additionalDebug = append(additionalDebug, JSONStringCleaner(string(jsonValue)))
 			}
 		}
 	}
