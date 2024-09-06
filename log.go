@@ -11,7 +11,7 @@ var errorLogHandler = func(err Error) {
 		fmt.Println(e)
 	}
 
-	fmt.Println(JSONStringCleaner(string(b)))
+	fmt.Println(string(b))
 }
 
 var infoLogHandler = func(info Info) {
@@ -20,7 +20,7 @@ var infoLogHandler = func(info Info) {
 		fmt.Println(e)
 	}
 
-	fmt.Println(JSONStringCleaner(string(b)))
+	fmt.Println(string(b))
 }
 
 type ErrorLogHandler func(err Error)
